@@ -1,7 +1,11 @@
-import {Observable, observable} from "rxjs";
+import {debounce, debounceTime, distinctUntilChanged, fromEvent, map, Observable, observable} from "rxjs";
 
+/*const search$: Observable<Event> = fromEvent<Event>(
+  document.getElementById('search'),
+  'input'
+);*/
 
-const search$ = new Observable(observer => {
+const search$ = new Observable<Event>(observer => {
 
   const search = document.getElementById('search');
 
@@ -10,21 +14,27 @@ const search$ = new Observable(observer => {
   }
   search!.addEventListener("input", event => {
     observer.next(event);
-    observer.complete();
+
   })
 });
 // VARIANT 1
-//search$.subscribe((value)=> {
-//  console.log(1);
-//  console.log(value);
-//})
+search$.pipe(
+  map(event => {
+    return (event.target as HTMLInputElement).value;
+  }),
+  debounceTime(500),
+  map(value => value.length > 3 ? value : '' ),//ждет 500 мс, и только потом считывает значение с инпута
+  distinctUntilChanged()) // проверяет изменилось ли значение или нет, если нет значение вперед не проходит
+  .subscribe((value)=> {
+  console.log(value);
+})
 
 // VARIANT 2
-search$.subscribe( {
+/*search$.subscribe( {
   next: value => {
     console.log(value)
   },
   error: err => console.log(err),
   complete:() => console.log('End')
-  });
+  });*/
 
